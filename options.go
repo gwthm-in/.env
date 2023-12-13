@@ -6,11 +6,6 @@ import (
 	"path/filepath"
 )
 
-type Options interface {
-	ParseFilePaths(files ...string) []string
-	Debug() bool
-}
-
 type options struct {
 	lookupMod bool // look up for go.mod file, by default false
 	lookupGit bool // look up for .git directory, by default false
@@ -44,7 +39,7 @@ func (o *options) ParseFilePaths(files ...string) []string {
 	}
 
 	if o.lookupMod {
-		if modPath := gomodPath(); modPath != "" {
+		if modPath := modPath(); modPath != "" {
 			parsedFiles = append(parsedFiles, o.ParseFilePath(modPath))
 		}
 	}
@@ -60,7 +55,7 @@ func gitRepoPath() string {
 	return ""
 }
 
-func gomodPath() string {
+func modPath() string {
 	bytes, err := exec.Command("go", "env", "GOMOD").Output()
 	if err == nil {
 		return filepath.Dir(string(bytes))
@@ -78,10 +73,6 @@ func (o *options) ParseFilePath(file string) string {
 	}
 
 	return os.Expand(file, os.Getenv)
-}
-
-func (o *options) Debug() bool {
-	return o.debug
 }
 
 func isDirectory(file string) bool {

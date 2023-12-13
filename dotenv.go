@@ -12,7 +12,7 @@ import (
 
 type dotenv struct {
 	files []string
-	opts  Options
+	opts  *options
 }
 
 var LoadFailedErr = errors.New("[dotenv] failed to load files")
@@ -21,7 +21,7 @@ func (d *dotenv) Load(files ...string) error {
 	var loadErr error
 	parsedFiles := d.opts.ParseFilePaths(files...)
 	for _, parsedFile := range parsedFiles {
-		if err := loadFile(parsedFile, false); err != nil && d.opts.Debug() {
+		if err := loadFile(parsedFile, false); err != nil && d.opts.debug {
 			if loadErr != nil {
 				loadErr = fmt.Errorf("%s\n%w", loadErr.Error(), err)
 			} else {
@@ -60,7 +60,7 @@ func loadFile(file string, overload bool) error {
 func (d *dotenv) Overload(files ...string) error {
 	parsedFiles := d.opts.ParseFilePaths(files...)
 	for _, parsedFile := range parsedFiles {
-		if err := loadFile(parsedFile, true); err != nil && d.opts.Debug() {
+		if err := loadFile(parsedFile, true); err != nil && d.opts.debug {
 			log.Println(fmt.Sprintf("[dotenv] Overloading parsedFile %s failed with error %s", parsedFile, err.Error()))
 			continue
 		}
@@ -69,6 +69,6 @@ func (d *dotenv) Overload(files ...string) error {
 	return nil
 }
 
-func new(opts Options) *dotenv {
-	return &dotenv{opts: opts}
+func new() *dotenv {
+	return &dotenv{opts: newOpts()}
 }
