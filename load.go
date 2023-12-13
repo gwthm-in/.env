@@ -1,7 +1,15 @@
 package dotenv
 
-import "fmt"
+var d = new(newOpts())
 
-func Load() {
-	fmt.Println("vim-go")
+func Load(files ...string) error {
+	return d.Load(files...)
+}
+
+func Reset() {
+	d = new(newOpts())
+}
+
+func Overload(files ...string) error {
+	return d.Overload(files...)
 }
