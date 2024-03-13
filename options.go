@@ -32,15 +32,17 @@ func (o *options) ParseFilePaths(files ...string) []string {
 		parsedFiles = append(parsedFiles, o.ParseFilePath(file))
 	}
 
-	if o.lookupGit {
-		if repoPath := gitRepoPath(); repoPath != "" {
-			parsedFiles = append(parsedFiles, o.ParseFilePath(repoPath))
+	if !filepath.IsAbs(o.lookupFile) {
+		if o.lookupGit {
+			if repoPath := gitRepoPath(); repoPath != "" {
+				parsedFiles = append(parsedFiles, o.ParseFilePath(repoPath))
+			}
 		}
-	}
 
-	if o.lookupMod {
-		if modPath := modPath(); modPath != "" {
-			parsedFiles = append(parsedFiles, o.ParseFilePath(modPath))
+		if o.lookupMod {
+			if modPath := modPath(); modPath != "" {
+				parsedFiles = append(parsedFiles, o.ParseFilePath(modPath))
+			}
 		}
 	}
 
