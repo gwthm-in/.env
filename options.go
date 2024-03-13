@@ -28,21 +28,25 @@ func (o *options) FilesOrDefault(files ...string) []string {
 func (o *options) ParseFilePaths(files ...string) []string {
 	var parsedFiles []string
 	files = o.FilesOrDefault(files...)
+	d.logf("[dotenv] Default files to parse: %+s", files)
 	for _, file := range files {
 		parsedFiles = append(parsedFiles, o.ParseFilePath(file))
 	}
+	d.logf("[dotenv] Parsed files: %s", parsedFiles)
 
 	if !filepath.IsAbs(o.lookupFile) {
 		if o.lookupGit {
 			if repoPath := gitRepoPath(); repoPath != "" {
 				parsedFiles = append(parsedFiles, o.ParseFilePath(repoPath))
 			}
+			d.logf("[dotenv] Parsed files after git lookup: %s", parsedFiles)
 		}
 
 		if o.lookupMod {
 			if modPath := modPath(); modPath != "" {
 				parsedFiles = append(parsedFiles, o.ParseFilePath(modPath))
 			}
+			d.logf("[dotenv] Parsed files after git lookup: %s", parsedFiles)
 		}
 	}
 
