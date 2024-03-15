@@ -28,6 +28,7 @@ func (d *dotenv) Load(files ...string) error {
 			d.logf("[dotenv] Loading parsedFile %s failed with error %s", parsedFile, err.Error())
 			continue
 		}
+		d.logf("[dotenv] Loaded parsedFile %s", parsedFile)
 		d.files = append(d.files, parsedFile)
 	}
 
