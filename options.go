@@ -66,7 +66,7 @@ func filterValidFiles(files []string) []string {
 func gitRepoPath() string {
 	bytes, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
 	if err == nil {
-		return filepath.Dir(string(bytes))
+		return string(bytes)
 	}
 	return ""
 }
