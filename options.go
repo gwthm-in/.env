@@ -46,11 +46,21 @@ func (o *options) ParseFilePaths(files ...string) []string {
 			if modPath := modPath(); modPath != "" {
 				parsedFiles = append(parsedFiles, o.ParseFilePath(modPath))
 			}
-			d.logf("[dotenv] Parsed files after git lookup: %s", parsedFiles)
+			d.logf("[dotenv] Parsed files after mod lookup: %s", parsedFiles)
 		}
 	}
 
-	return parsedFiles
+	return filterValidFiles(parsedFiles)
+}
+
+func filterValidFiles(files []string) []string {
+	validFilePaths := []string{}
+	for _, file := range files {
+		if _, err := os.Stat(file); err == nil {
+			validFilePaths = append(validFilePaths, file)
+		}
+	}
+	return validFilePaths
 }
 
 func gitRepoPath() string {
