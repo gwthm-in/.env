@@ -10,16 +10,20 @@ import (
 	"github.com/joho/godotenv"
 )
 
+var NoFailsToLoadErr = errors.New("[dotenv] No files to load")
+
 type dotenv struct {
 	files []string
 	opts  *options
 }
 
-var LoadFailedErr = errors.New("[dotenv] failed to load files")
-
-func (d *dotenv) Load(files ...string) error {
+func (d *dotenv) Load() error {
 	var loadErr error
-	parsedFiles := d.opts.ParseFilePaths(files...)
+	parsedFiles := d.opts.ParseFilePaths()
+	if len(parsedFiles) == 0 {
+		d.logf("[dotenv] No files found to load")
+		return NoFailsToLoadErr
+	}
 	d.logf("[dotenv] Loading parsedFiles %s", strings.Join(parsedFiles, ", "))
 
 	for _, parsedFile := range parsedFiles {
@@ -31,7 +35,7 @@ func (d *dotenv) Load(files ...string) error {
 		d.logf("[dotenv] Loaded parsedFile %s", parsedFile)
 		d.files = append(d.files, parsedFile)
 	}
-
+	d.logf("[dotenv] Loaded parsedFiles %s", strings.Join(d.files, ", "))
 	return loadErr
 }
 
@@ -73,8 +77,8 @@ func loadFile(file string, overload bool) error {
 	return nil
 }
 
-func (d *dotenv) Overload(files ...string) error {
-	parsedFiles := d.opts.ParseFilePaths(files...)
+func (d *dotenv) Overload() error {
+	parsedFiles := d.opts.ParseFilePaths()
 	for _, parsedFile := range parsedFiles {
 		if err := loadFile(parsedFile, true); err != nil && d.opts.debug {
 			log.Println(fmt.Sprintf("[dotenv] Overloading parsedFile %s failed with error %s", parsedFile, err.Error()))

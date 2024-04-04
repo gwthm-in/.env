@@ -2,16 +2,16 @@ package dotenv
 
 var d = new()
 
-func Load(files ...string) error {
-	return d.Load(files...)
+func Load() error {
+	return d.Load()
 }
 
 func Reset() {
 	d = new()
 }
 
-func Overload(files ...string) error {
-	return d.Overload(files...)
+func Overload() error {
+	return d.Overload()
 }
 
 func OptLookupGit() {
@@ -35,5 +35,5 @@ func OptDebug() {
 }
 
 func OptLookupFile(file string) {
-	d.opts.lookupFile = file
+	d.opts.lookupFile = append(d.opts.lookupFile, file)
 }

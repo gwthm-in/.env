@@ -6,11 +6,13 @@ import (
 	"path/filepath"
 )
 
+const defaultConfigFile = ".env"
+
 type options struct {
 	lookupMod bool // look up for go.mod file, by default false
 	lookupGit bool // look up for .git directory, by default false
 
-	lookupFile  string   // file type of .env file, by default .env, ex: .env.test
+	lookupFile  []string // file type of .env file, by default .env, ex: .env.test
 	lookupPaths []string // look up for .env file in these paths, by default the current directory
 
 	disableFileExpand bool // disable expanding lookupFile to find .env.${ENVIRONMENT} files, by default false
@@ -18,43 +20,51 @@ type options struct {
 	debug             bool // enable debug mode, by default false
 }
 
-func (o *options) FilesOrDefault(files ...string) []string {
-	if len(files) == 0 {
-		files = append(files, o.lookupFile)
+func (o *options) FilesOrDefault() []string {
+	if len(o.lookupFile) == 0 {
+		return []string{defaultConfigFile}
 	}
-	return files
+	return o.lookupFile
 }
 
-func (o *options) ParseFilePaths(files ...string) []string {
+// ParseFilePaths parses the given files and returns the absolute path of the files
+func (o *options) ParseFilePaths() []string {
 	var parsedFiles []string
-	files = o.FilesOrDefault(files...)
-	d.logf("[dotenv] Default files to parse: %+s", files)
+	files := o.FilesOrDefault()
+	d.logf("[dotenv] Files to parse: %+v", files)
+
 	for _, file := range files {
-		parsedFiles = append(parsedFiles, o.ParseFilePath(file))
+		for _, path := range o.lookupPaths {
+			fullPath := filepath.Join(path, file)
+			if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+				d.logf("[dotenv] File does not exist: %s", fullPath)
+				continue
+			}
+
+			if o.lookupGit {
+				repoPath := gitRepoPath()
+				if repoPath != "" {
+					fullPath = filepath.Join(repoPath, file)
+				}
+			}
+
+			if o.lookupMod {
+				modPath := modPath()
+				if modPath != "" {
+					fullPath = filepath.Join(modPath, file)
+				}
+			}
+
+			parsedFiles = append(parsedFiles, fullPath)
+		}
 	}
+
 	d.logf("[dotenv] Parsed files: %s", parsedFiles)
-
-	if !filepath.IsAbs(o.lookupFile) {
-		if o.lookupGit {
-			if repoPath := gitRepoPath(); repoPath != "" {
-				parsedFiles = append(parsedFiles, o.ParseFilePath(repoPath))
-			}
-			d.logf("[dotenv] Parsed files after git lookup: %s", parsedFiles)
-		}
-
-		if o.lookupMod {
-			if modPath := modPath(); modPath != "" {
-				parsedFiles = append(parsedFiles, o.ParseFilePath(modPath))
-			}
-			d.logf("[dotenv] Parsed files after mod lookup: %s", parsedFiles)
-		}
-	}
-
 	return filterValidFiles(parsedFiles)
 }
 
 func filterValidFiles(files []string) []string {
-	validFilePaths := []string{}
+	var validFilePaths []string
 	for _, file := range files {
 		if _, err := os.Stat(file); err == nil {
 			validFilePaths = append(validFilePaths, file)
@@ -79,30 +89,9 @@ func modPath() string {
 	return ""
 }
 
-func (o *options) ParseFilePath(file string) string {
-	if isDirectory(file) {
-		file = filepath.Join(file, o.lookupFile)
-	}
-
-	if o.disableFileExpand {
-		return file
-	}
-
-	return os.Expand(file, os.Getenv)
-}
-
-func isDirectory(file string) bool {
-	fInfo, err := os.Stat(file)
-	if err != nil {
-		return false
-	}
-
-	return fInfo.IsDir()
-}
-
 func newOpts() *options {
 	return &options{
-		lookupFile:  ".env",
+		lookupFile:  []string{},
 		lookupPaths: []string{"./"},
 	}
 }

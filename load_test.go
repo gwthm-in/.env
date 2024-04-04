@@ -12,7 +12,7 @@ import (
 
 var noopPresets = make(map[string]string)
 
-func loadEnvAndCompareValues(t *testing.T, loader func(files ...string) error, envFileName string, expectedValues map[string]string, presets map[string]string) {
+func loadEnvAndCompareValues(t *testing.T, loader func() error, envFileName string, expectedValues map[string]string, presets map[string]string) {
 	// first up, clear the env
 	os.Clearenv()
 
@@ -20,7 +20,8 @@ func loadEnvAndCompareValues(t *testing.T, loader func(files ...string) error, e
 		os.Setenv(k, v)
 	}
 
-	err := loader(envFileName)
+	d.opts.lookupFile = []string{envFileName}
+	err := loader()
 	require.NoError(t, err)
 
 	for k := range expectedValues {
@@ -43,12 +44,14 @@ func TestOverloadWithNoArgsOverloadsDotEnv(t *testing.T) {
 }
 
 func TestLoadFileNotFound(t *testing.T) {
-	err := Load("somefilethatwillneverexistever.env")
+	OptLookupFile("somefilethatwillneverexistever.env")
+	err := Load()
 	require.NoError(t, err)
 }
 
 func TestOverloadFileNotFound(t *testing.T) {
-	err := Overload("somefilethatwillneverexistever.env")
+	d.opts.lookupFile = []string{"somefilethatwillneverexistever.env"}
+	err := Overload()
 	if err == nil {
 		t.Error("File wasn't found but Overload didn't return an error")
 	}
@@ -245,7 +248,8 @@ func TestVariableStringValueSeparator(t *testing.T) {
 func TestActualEnvVarsAreLeftAlone(t *testing.T) {
 	os.Clearenv()
 	os.Setenv("OPTION_A", "actualenv")
-	_ = Load("fixtures/plain.env")
+	d.opts.lookupFile = []string{"fixtures/plain.env"}
+	_ = Load()
 
 	if os.Getenv("OPTION_A") != "actualenv" {
 		t.Error("An ENV var set earlier was overwritten")
