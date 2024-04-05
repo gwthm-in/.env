@@ -35,6 +35,11 @@ func (o *options) ParseFilePaths() []string {
 
 	for _, file := range files {
 		for _, path := range o.lookupPaths {
+			if filepath.IsAbs(file) {
+				parsedFiles = append(parsedFiles, file)
+				continue
+			}
+
 			fullPath := filepath.Join(path, file)
 			if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 				d.logf("[dotenv] File does not exist: %s", fullPath)
