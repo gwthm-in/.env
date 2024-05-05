@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 const defaultConfigFile = ".env"
@@ -40,32 +41,56 @@ func (o *options) ParseFilePaths() []string {
 				continue
 			}
 
-			fullPath := filepath.Join(path, file)
-			if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-				d.logf("[dotenv] File does not exist: %s", fullPath)
+			if fullPath := filepath.Join(path, file); fileExists(fullPath) {
+				parsedFiles = append(parsedFiles, fullPath)
 				continue
 			}
+		}
 
-			if o.lookupGit {
-				repoPath := gitRepoPath()
-				if repoPath != "" {
-					fullPath = filepath.Join(repoPath, file)
-				}
-			}
-
-			if o.lookupMod {
-				modPath := modPath()
-				if modPath != "" {
-					fullPath = filepath.Join(modPath, file)
-				}
-			}
-
+		if fullPath := o.gitRepoFile(file); fileExists(fullPath) {
 			parsedFiles = append(parsedFiles, fullPath)
+			continue
+		}
+
+		if fullPath := o.goModFile(file); fileExists(fullPath) {
+			parsedFiles = append(parsedFiles, fullPath)
+			continue
 		}
 	}
 
 	d.logf("[dotenv] Parsed files: %s", parsedFiles)
 	return filterValidFiles(parsedFiles)
+}
+
+func (o *options) goModFile(file string) string {
+	if !o.lookupMod {
+		return ""
+	}
+
+	modPath := goModPath()
+	if modPath == "" {
+		return ""
+	}
+
+	return filepath.Join(modPath, file)
+}
+
+func (o *options) gitRepoFile(file string) string {
+	if !o.lookupGit {
+		return ""
+	}
+
+	repoPath := gitRepoPath()
+	if repoPath == "" {
+		return ""
+	}
+
+	return filepath.Join(repoPath, file)
+}
+
+func fileExists(fullPath string) bool {
+	_, err := os.Stat(fullPath)
+	return !os.IsNotExist(err)
 }
 
 func filterValidFiles(files []string) []string {
@@ -81,12 +106,12 @@ func filterValidFiles(files []string) []string {
 func gitRepoPath() string {
 	bytes, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
 	if err == nil {
-		return string(bytes)
+		return strings.TrimSuffix(string(bytes), "\n")
 	}
 	return ""
 }
 
-func modPath() string {
+func goModPath() string {
 	bytes, err := exec.Command("go", "env", "GOMOD").Output()
 	if err == nil {
 		return filepath.Dir(string(bytes))
