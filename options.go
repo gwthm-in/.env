@@ -10,6 +10,8 @@ import (
 const defaultConfigFile = ".env"
 
 type options struct {
+	mu sync.Mutex
+
 	lookupMod bool // look up for go.mod file, by default false
 	lookupGit bool // look up for .git directory, by default false
 
@@ -30,6 +32,9 @@ func (o *options) FilesOrDefault() []string {
 
 // ParseFilePaths parses the given files and returns the absolute path of the files
 func (o *options) ParseFilePaths() []string {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+
 	var parsedFiles []string
 	files := o.FilesOrDefault()
 	d.logf("[dotenv] Files to parse: %+v", files)
