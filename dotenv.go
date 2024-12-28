@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/joho/godotenv"
 )
@@ -13,6 +14,8 @@ import (
 var NoFailsToLoadErr = errors.New("[dotenv] No files to load")
 
 type dotenv struct {
+	mu sync.Mutex
+
 	files []string
 	opts  *options
 }
