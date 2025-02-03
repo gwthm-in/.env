@@ -5,6 +5,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/fsnotify/fsnotify"
 )
 
 const defaultConfigFile = ".env"
@@ -19,6 +21,8 @@ type options struct {
 	disableFileExpand bool // disable expanding lookupFile to find .env.${ENVIRONMENT} files, by default false
 	disablePathExpand bool // disable expanding lookupPaths to find .env file, by default false
 	debug             bool // enable debug mode, by default false
+	watchConfig       bool // enable watch config mode, by default false
+	onConfigChange    func(fsnotify.Event)
 }
 
 func (o *options) FilesOrDefault() []string {
