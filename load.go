@@ -40,6 +40,10 @@ func OptLookupFile(file string) {
 	d.opts.lookupFile = append(d.opts.lookupFile, file)
 }
 
+func OptDynamicLookupFile(file string) {
+	d.opts.dynamicLookupFile = append(d.opts.dynamicLookupFile, file)
+}
+
 func WatchConfig() {
 	d.opts.watchConfig = true
 	files := d.opts.ParseFilePaths()
