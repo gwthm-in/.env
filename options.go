@@ -5,6 +5,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/fsnotify/fsnotify"
 )
 
 const defaultConfigFile = ".env"
@@ -16,22 +18,35 @@ type options struct {
 	lookupFile  []string // file type of .env file, by default .env, ex: .env.test
 	lookupPaths []string // look up for .env file in these paths, by default the current directory
 
+	dynamicLookupFile []string
+
 	disableFileExpand bool // disable expanding lookupFile to find .env.${ENVIRONMENT} files, by default false
 	disablePathExpand bool // disable expanding lookupPaths to find .env file, by default false
 	debug             bool // enable debug mode, by default false
+	watchConfig       bool // enable watch config mode, by default false
+	onConfigChange    func(fsnotify.Event)
 }
 
 func (o *options) FilesOrDefault() []string {
 	if len(o.lookupFile) == 0 {
 		return []string{defaultConfigFile}
 	}
-	return o.lookupFile
+	return append(o.lookupFile, o.dynamicLookupFile...)
 }
 
 // ParseFilePaths parses the given files and returns the absolute path of the files
 func (o *options) ParseFilePaths() []string {
-	var parsedFiles []string
 	files := o.FilesOrDefault()
+	return o.extractParsedFiles(files)
+}
+
+func (o *options) ParseDynamicFilePaths() []string {
+	files := o.dynamicLookupFile
+	return o.extractParsedFiles(files)
+}
+
+func (o *options) extractParsedFiles(files []string) []string {
+	var parsedFiles []string
 	d.logf("[dotenv] Files to parse: %+v", files)
 
 	for _, file := range files {

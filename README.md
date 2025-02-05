@@ -17,8 +17,15 @@ func main() {
 	dotenv.OptLookupGit() // to load the .env file from the git root
 	dotenv.OptLookupFile("application.env") // to look for a specific file instead of .env file
 	dotenv.OptLookupFile("application.env.$ENV") // to look for a specific file instead of .env file
+	dotenv.OptDynamicLookupFile("dynamic.env") //watch for dynamic file
+	dotenv.OptDynamicLookupFile("dynamic_2.env") //you could configure multiple dynamic files
+	dotenv.OnConfigChange(func(event fsnotify.Event) {  //callback for changes in dynamic env
+		dotenv.Overload()
+	})
 
-	err := dotenv.Load()
+	dotenv.WatchConfig() //watcher activated
+
+	err := dotenv.Load() //loads both static and dynamic files
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
