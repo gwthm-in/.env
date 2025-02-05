@@ -46,7 +46,7 @@ func OptDynamicLookupFile(file string) {
 
 func WatchConfig() {
 	d.opts.watchConfig = true
-	files := d.opts.ParseFilePaths()
+	files := d.opts.ParseDynamicFilePaths()
 	for _, file := range files {
 		go d.WatchConfig(file)
 	}
