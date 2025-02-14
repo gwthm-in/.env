@@ -41,7 +41,7 @@ func OptLookupFile(file string) {
 }
 
 func OptDynamicLookupWatchFile(file string) {
-	d.opts.dynamicLookupFile = append(d.opts.dynamicLookupFile, file)
+	d.opts.dynamicLookupWatchFile = append(d.opts.dynamicLookupWatchFile, file)
 }
 
 func WatchConfig() {

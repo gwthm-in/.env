@@ -18,7 +18,7 @@ type options struct {
 	lookupFile  []string // file type of .env file, by default .env, ex: .env.test
 	lookupPaths []string // look up for .env file in these paths, by default the current directory
 
-	dynamicLookupFile []string
+	dynamicLookupWatchFile []string
 
 	disableFileExpand bool // disable expanding lookupFile to find .env.${ENVIRONMENT} files, by default false
 	disablePathExpand bool // disable expanding lookupPaths to find .env file, by default false
@@ -31,7 +31,7 @@ func (o *options) FilesOrDefault() []string {
 	if len(o.lookupFile) == 0 {
 		return []string{defaultConfigFile}
 	}
-	return append(o.lookupFile, o.dynamicLookupFile...)
+	return append(o.lookupFile, o.dynamicLookupWatchFile...)
 }
 
 // ParseFilePaths parses the given files and returns the absolute path of the files
@@ -41,7 +41,7 @@ func (o *options) ParseFilePaths() []string {
 }
 
 func (o *options) ParseDynamicFilePaths() []string {
-	files := o.dynamicLookupFile
+	files := o.dynamicLookupWatchFile
 	return o.extractParsedFiles(files)
 }
 
