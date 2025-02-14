@@ -40,7 +40,7 @@ func OptLookupFile(file string) {
 	d.opts.lookupFile = append(d.opts.lookupFile, file)
 }
 
-func OptDynamicLookupFile(file string) {
+func OptDynamicLookupWatchFile(file string) {
 	d.opts.dynamicLookupFile = append(d.opts.dynamicLookupFile, file)
 }
 
